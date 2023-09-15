@@ -2,8 +2,7 @@ class Subject:
   code: str
   name: str
   credits_amount: int
-  prerequisites: list
-  subsequent_subjects: list
+  prerequisites: list[str]
 
   def __init__(self, code: str, name: str, credits_amount: int) -> None:
     self.code = code
