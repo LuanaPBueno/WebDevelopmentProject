@@ -1,9 +1,10 @@
 CREATE TABLE Disciplinas (
-    curso VARCHAR(255),
     cod INT PRIMARY KEY,
     nome_da_disciplina VARCHAR(255),
-    créditos INT,
-    pre_requisito VARCHAR(255),
-    co_requesito VARCHAR(255),
-    ementa VARCHAR(255)
-);
+    créditos INT );
+CREATE TABLE PreRequisitos ( 
+    id INT PRIMARY KEY, 
+    disciplina_cod INT,
+    pre_requisito_cod INT,
+    FOREIGN KEY (disciplina_cod) REFERENCES Disciplinas(cod), 
+    FOREIGN KEY (pre_requisito_cod) REFERENCES Disciplinas(cod) );
