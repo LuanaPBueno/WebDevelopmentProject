@@ -5,11 +5,12 @@ from models.subject import Subject
 class WebScrapper:
   __ALL_COURSES_PAGE = "https://www.puc-rio.br/ensinopesq/ccg/cursos.html"
   __SUBJECT_BASE_URL = "https://www.puc-rio.br/ferramentas/ementas/ementa.aspx?cd="
+  __COURSE_BASE_URL = "https://www.puc-rio.br/ensinopesq/ccg/"
 
   @staticmethod
   def get_subject_from_code(code: str) -> Subject:
     '''
-      Retorna um Subject a partir do seu código.
+      Retorna um Subject a partir do código da matéria.
     '''
     soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
 
@@ -24,13 +25,14 @@ class WebScrapper:
     )
 
   @staticmethod
-  def get_courses():
+  def get_courses() -> list:
     '''
       Retorna uma list de Course com todos os cursos disponíveis no site da PUC.
     '''
     courses = []
 
     course_pages = WebScrapper.__get_course_pages()
+    print(course_pages)
 
     return courses
 
@@ -44,6 +46,7 @@ class WebScrapper:
     http_response = requests.get(link)
     if http_response.status_code != 200:
       raise Exception(f"Error during HTTP request from: {WebScrapper.__ALL_COURSES_PAGE}.\nHTTP response status code: {http_response.status_code}.")
+    http_response.encoding = http_response.apparent_encoding
 
     return BeautifulSoup(markup = http_response.text, features = "html.parser")
 
@@ -55,16 +58,14 @@ class WebScrapper:
     course_pages = {}
     soup = WebScrapper.__get_soup_from_link(WebScrapper.__ALL_COURSES_PAGE)
 
-    course_column = soup.find_all(name = "ul", class_ = "puc_lista_recuada_TAG-UL")
+    courses_div = soup.find(name = "div", class_ = "puc_layout_coluna_2cols_nivelador")
+    for course in courses_div.find_all(name = 'a'):
+      if course.text == '': continue
+      if "https://www.cbctc.puc-rio.br" in course['href']: continue
+      if WebScrapper.__COURSE_BASE_URL + "engenharia.html" in course['href']: continue
 
-    for course_list in course_column:
-      courses = course_list.find_all(name = "li")
-      for course in courses:
-        if course.find('a') == None: continue
-        if "https://www.cbctc.puc-rio.br" in course.find('a')['href']: continue # desconsiderar o ciclo básico do CTC
-
-        course_name = course.find('a').text # TODO corrijir caracteres especiais
-        course_link = "https://www.puc-rio.br/ensinopesq/ccg/" + course.find('a')['href']
-        course_pages[course_name] = course_link
+      course_name = course.text
+      course_link = WebScrapper.__COURSE_BASE_URL + course['href']
+      course_pages[course_name] = course_link
 
     return course_pages
