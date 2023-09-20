@@ -1,4 +1,5 @@
 CREATE TABLE Disciplinas (
+    curso VARCHAR(255),
     cod INT PRIMARY KEY,
     nome_da_disciplina VARCHAR(255),
     créditos INT,
