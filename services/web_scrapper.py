@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 from models.subject import Subject
+from models.optative_subjects_group import OptativeSubjectsGroup
 
 class WebScrapper:
   __ALL_COURSES_PAGE = "https://www.puc-rio.br/ensinopesq/ccg/cursos.html"
@@ -8,21 +9,50 @@ class WebScrapper:
   __COURSE_BASE_URL = "https://www.puc-rio.br/ensinopesq/ccg/"
 
   @staticmethod
-  def get_subject_from_code(code: str) -> Subject:
+  def get_subject_from_code(code: str) -> Subject | list[Subject]:
     '''
       Retorna um Subject a partir do código da matéria.
+
+      Se o código for de um grupo de optativas, retorna uma lista de Subject com todas as opções.
     '''
     soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
 
-    name = soup.find(name = "h3", id = "hTitulo").text
-    credits_amount = soup.find(name = "h3", id = "hCreditos").text
-    credits_amount = credits_amount.replace(" créditos", "")
+    if not soup.find(name = "fieldset", id = "grupoDisciplina"):
+      name = soup.find(name = "h3", id = "hTitulo").text
+      credits_amount = soup.find(name = "h3", id = "hCreditos").text
+      credits_amount = credits_amount.replace(" créditos", "").replace(" crйditos", "")
 
-    return Subject(
-      code = code,
-      name = name,
-      credits_amount = int(credits_amount),
-    )
+      return Subject(
+        code = code,
+        name = name,
+        credits_amount = int(credits_amount),
+      )
+
+    else: # Grupo de optativas
+      subjects = []
+
+      optative_group = WebScrapper.get_optative_subjects_group_from_code(code)
+      for subject_code in optative_group.subjects:
+        subjects.append(WebScrapper.get_subject_from_code(subject_code))
+
+      return subjects
+
+  @staticmethod
+  def get_optative_subjects_group_from_code(code: str) -> OptativeSubjectsGroup:
+    '''
+      Retorna um OptativeSubjectsGroup a partir do código da matéria.
+    '''
+    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
+
+    subjects_group = soup.find(name = "fieldset", id = "grupoDisciplina")
+    if subjects_group == None : raise Exception(f"Subject with code {code} is not a optative subjects group")
+
+    name = soup.find(name = "h3", id = "hTitulo").text
+    subjects = []
+    for subject in subjects_group.find_all(name = "a"):
+      subjects.append(subject.text.strip())
+
+    return OptativeSubjectsGroup(code, name, subjects)
 
   @staticmethod
   def get_courses() -> list:
@@ -32,7 +62,6 @@ class WebScrapper:
     courses = []
 
     course_pages = WebScrapper.__get_course_pages()
-    print(course_pages)
 
     return courses
 
