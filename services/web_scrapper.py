@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from models.subject import Subject
 from models.optative_subjects_group import OptativeSubjectsGroup
+from models.course import Course
 
 class WebScrapper:
   __ALL_COURSES_PAGE = "https://www.puc-rio.br/ensinopesq/ccg/cursos.html"
@@ -26,6 +27,7 @@ class WebScrapper:
         code = code,
         name = name,
         credits_amount = int(credits_amount),
+        prerequisites = WebScrapper.get_subject_prerequisites(code)
       )
 
     else: # Grupo de optativas
@@ -55,7 +57,36 @@ class WebScrapper:
     return OptativeSubjectsGroup(code, name, subjects)
 
   @staticmethod
-  def get_courses() -> list:
+  def get_subject_prerequisites(subject_code: str) -> list[list[str]]:
+    '''
+      Retorna uma lista com sublistas possibilidades de pré-requisitos.
+
+      Cada sublista contém strings representando o código de uma matéria.
+
+      Caso um pré-requisito não seja uma matéria, ele vem com um '_' na frente.
+    '''
+    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + subject_code)
+    prerequisites = []
+
+    pre_requisites_fieldset = soup.find(name = "fieldset", id = "prerequisito")
+    if "Nenhum pre-requisito encontrado" in pre_requisites_fieldset.text:
+      return []
+
+    for prerequisite_span in pre_requisites_fieldset.find_all(name = "span", class_ = "links"):
+      prerequisite = []
+
+      for subject in prerequisite_span.find_all(name = "a"):
+        prerequisite.append(subject.text)
+      for other_prerequisite in prerequisite_span.find_all(name = "span"):
+        if other_prerequisite.text == " e ": continue
+        prerequisite.append("_" + other_prerequisite.text.replace("e ", ""))
+
+      prerequisites.append(prerequisite)
+
+    return prerequisites
+
+  @staticmethod
+  def get_courses() -> list[Course]:
     '''
       Retorna uma list de Course com todos os cursos disponíveis no site da PUC.
     '''
