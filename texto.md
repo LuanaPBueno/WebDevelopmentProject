@@ -12,4 +12,3 @@ Oq aparece pra mim em um site é a cópia dele, ent posso mexe que n da em nada.
 
 
 
-dfivufodugbfioubvofigubfoiu
