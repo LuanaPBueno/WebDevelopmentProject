@@ -9,6 +9,22 @@ class WebScrapper:
   __SUBJECT_BASE_URL = "https://www.puc-rio.br/ferramentas/ementas/ementa.aspx?cd="
   __COURSE_BASE_URL = "https://www.puc-rio.br/ensinopesq/ccg/"
 
+  __COURSES_WITH_LICENCIATURE = [
+    "Ciências Biológicas",
+    "Ciências Sociais",
+    "Filosofia",
+    "Geografia",
+    "História",
+  ]
+
+  __SPECIAL_SUBJECTS = [
+    "ELO0900", # Eletivas de Orientação
+    "EXT0001", # Optativa de Extensão
+    "ELL0900", # Eletivas Livres
+    "EXT0001", # Optativa de Extensão
+  ]
+  ''' Lista com código de matérias optativas, atividades complementares, etc. '''
+
   @staticmethod
   def get_subject_from_code(code: str) -> Subject | list[Subject]:
     '''
@@ -120,12 +136,25 @@ class WebScrapper:
 
     courses_div = soup.find(name = "div", class_ = "puc_layout_coluna_2cols_nivelador")
     for course in courses_div.find_all(name = 'a'):
+      # links que não são cursos
       if course.text == '': continue
       if "https://www.cbctc.puc-rio.br" in course['href']: continue
-      if WebScrapper.__COURSE_BASE_URL + "engenharia.html" in course['href']: continue
+      if "Engenharias" in course.text: continue
+      if "Comunicação Social" in course.text: continue # curso substituído por Estudos de Mídia
 
-      course_name = course.text
+      course_name = course.text.replace("- NOVO!", "").strip()
       course_link = WebScrapper.__COURSE_BASE_URL + course['href']
-      course_pages[course_name] = course_link
+
+      # modificações nos links
+      for name in WebScrapper.__COURSES_WITH_LICENCIATURE:
+        if name in course_name:
+          course_link = course_link.replace(".html", "_bacharelado.html")
+
+      if "Letras" not in course_name:
+        course_pages[course_name] = course_link
+      else:
+        course_pages["Letras – Português e Inglês e Respectivas Literaturas"] = WebScrapper.__COURSE_BASE_URL + "letras_port-ing.html"
+        course_pages["Letras - Tradução"] = WebScrapper.__COURSE_BASE_URL + "letras_traducao.html"
+        course_pages["Letras - Produção Textual"] = WebScrapper.__COURSE_BASE_URL + "letras_prod-texto.html"
 
     return course_pages
