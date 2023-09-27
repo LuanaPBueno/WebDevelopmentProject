@@ -7,4 +7,3 @@ class OptativeSubjectsGroup:
     self.code = code
     self.name = name
     self.subjects = subjects
-
