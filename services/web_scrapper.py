@@ -43,7 +43,8 @@ class WebScrapper:
         code = code,
         name = name,
         credits_amount = int(credits_amount),
-        prerequisites = WebScrapper.get_subject_prerequisites(code)
+        prerequisites = WebScrapper.get_subject_prerequisites(code),
+        corequisites = WebScrapper.get_corequisites(code),
       )
 
     else: # Grupo de optativas
@@ -100,6 +101,20 @@ class WebScrapper:
       prerequisites.append(prerequisite)
 
     return prerequisites
+
+  @staticmethod
+  def get_corequisites(subject_code: str) -> list[str]:
+    '''
+      Retorna uma list com códigos de disciplinas que são co-requisitos do código da disciplina recebida pelo parâmetro subject_code.
+    '''
+    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + subject_code)
+    corequisites = []
+
+    corequisites_fieldset = soup.find(name = "fieldset", id = "corequisito")
+    for subject in corequisites_fieldset.find_all(name = "a"):
+      corequisites.append(subject.text)
+
+    return corequisites
 
   @staticmethod
   def get_courses() -> list[Course]:
@@ -166,6 +181,11 @@ class WebScrapper:
 
   @staticmethod
   def __get_last_curriculum(course_page: str) -> list[list[str]]:
+    '''
+      A partir do link para página do curso, retorna uma lista com sublistas que representam um período.
+
+      Cada sublista de período contem os códigos das disciplinas do período.
+    '''
     soup = WebScrapper.__get_soup_from_link(course_page)
     curriculum = []
 
@@ -185,8 +205,8 @@ class WebScrapper:
         if subject_code not in WebScrapper.__SPECIAL_SUBJECTS:
           period.append(subject_code)
 
-    # TODO https://www.puc-rio.br/ensinopesq/ccg/estudos_de_midia.html
-    # TODO https://www.puc-rio.br/ensinopesq/ccg/design.html
+    # FIXME https://www.puc-rio.br/ensinopesq/ccg/estudos_de_midia.html
+    # FIXME https://www.puc-rio.br/ensinopesq/ccg/design.html
     # TODO pegar informações de atividades complementares, ect.
 
     return curriculum
