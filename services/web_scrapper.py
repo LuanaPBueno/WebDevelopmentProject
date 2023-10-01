@@ -22,6 +22,7 @@ class WebScrapper:
     "EXT0001", # Optativa de Extensão
     "ELL0900", # Eletivas Livres
     "EXT0001", # Optativa de Extensão
+    "",        # tr vazio e o "ou" de design
   ]
   ''' Lista com código de matérias optativas, atividades complementares, etc. '''
 
@@ -218,16 +219,13 @@ class WebScrapper:
       elif "PERÍODO LETIVO INDETERMINADO" in tr.text.upper():
         if len(period) > 0: curriculum.append(period)
         break
-      elif "PERÍODO" in tr.text.upper():
+      elif "PERÍODO" in tr.text.upper() or "CICLO" in tr.text.upper():
         if len(period) > 0: curriculum.append(period)
         period = []
       elif tr.find(name = "a"):
         subject_code = tr.find(name = "a").text.strip()
         if subject_code not in WebScrapper.__SPECIAL_SUBJECTS:
           period.append(subject_code)
-
-    # FIXME https://www.puc-rio.br/ensinopesq/ccg/estudos_de_midia.html
-    # FIXME https://www.puc-rio.br/ensinopesq/ccg/design.html
 
     return curriculum
 
