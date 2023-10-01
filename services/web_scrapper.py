@@ -125,12 +125,33 @@ class WebScrapper:
 
     course_pages = WebScrapper.__get_course_pages()
     for course_name in course_pages.keys():
-      courses.append(Course(
-        name = course_name,
-        last_curriculum = WebScrapper.__get_last_curriculum(course_pages[course_name]),
-      ))
+      courses.append(
+        WebScrapper.get_course_from_name(
+          name = course_name,
+          link = course_pages[course_name]
+        )
+      )
 
     return courses
+
+  @staticmethod
+  def get_course_from_name(name: str, link = '') -> Course:
+    '''
+      Retorna um Course a partir de seu name.
+      Pode ser informado o link para aumentar a performance.
+
+      Cursos com especializações precisam ser seguidos pela especialização.
+      Pode lançar um erro caso o nome do curso não siga esse padrão.
+    '''
+    if link == '': link = WebScrapper.__get_course_pages()[name]
+
+    complementary_activities_amount, free_electives_amount = WebScrapper.__get_curriculum_information(link)
+    return Course(
+      name = name,
+      last_curriculum = WebScrapper.__get_last_curriculum(link),
+      free_electives_amount = free_electives_amount,
+      complementary_activities_amount = complementary_activities_amount,
+    )
 
   @staticmethod
   def __get_soup_from_link(link: str) -> BeautifulSoup:
@@ -194,7 +215,7 @@ class WebScrapper:
     for tr in curriculum_tbody.find_all(name = "tr"):
       if "Nome da Disciplina" in tr.text:
         continue
-      elif "PERÍODO LETIVO INDETERMINADO" in tr.text:
+      elif "PERÍODO LETIVO INDETERMINADO" in tr.text.upper():
         if len(period) > 0: curriculum.append(period)
         break
       elif "PERÍODO" in tr.text.upper():
@@ -207,6 +228,25 @@ class WebScrapper:
 
     # FIXME https://www.puc-rio.br/ensinopesq/ccg/estudos_de_midia.html
     # FIXME https://www.puc-rio.br/ensinopesq/ccg/design.html
-    # TODO pegar informações de atividades complementares, ect.
 
     return curriculum
+
+  @staticmethod
+  def __get_curriculum_information(course_page: str) -> tuple[int, int]:
+    '''
+      Retorna a quantidade de horas complementares e eletivas livres de um curso a partir da sua página.
+    '''
+    soup = WebScrapper.__get_soup_from_link(course_page)
+    complementary_activities_amount = 0
+    free_electives_amount = 0
+
+    curriculum_tbody = soup.find(name = "table", class_ = "puc_tabela_padrao_TAG-TABLE ccg_tabela_periodizacao")
+    for tr in curriculum_tbody.find_all(name = "tr"):
+      if "ACP0900" in tr.text:
+        tds = tr.find_all(name = "td")
+        complementary_activities_amount = int(tds[2].text.strip())
+      elif "ELL0900" in tr.text or "ELU0900" in tr.text:
+        tds = tr.find_all(name = "td")
+        free_electives_amount = int(tds[2].text.strip())
+
+    return complementary_activities_amount, free_electives_amount
