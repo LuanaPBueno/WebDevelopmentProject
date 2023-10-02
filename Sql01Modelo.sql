@@ -1,7 +1,7 @@
 CREATE TABLE Disciplinas (
     id_disciplina INT PRIMARY KEY,
     nome_da_disciplina VARCHAR(255),
-    créditos INT );
+    créditos INT
     curso_da_disciplina VARCHAR(100),
     FOREIGN KEY (curso_da_disciplina) REFERENCES Cursos(nome_do_curso));
 
