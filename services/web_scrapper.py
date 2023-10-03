@@ -104,7 +104,7 @@ class WebScrapper:
     return prerequisites
 
   @staticmethod
-  def get_corequisites(subject_code: str) -> list[str]:
+  def get_corequisites(subject_code: str) -> list[list[str]]:
     '''
       Retorna uma list com códigos de disciplinas que são co-requisitos do código da disciplina recebida pelo parâmetro subject_code.
     '''
@@ -112,8 +112,14 @@ class WebScrapper:
     corequisites = []
 
     corequisites_fieldset = soup.find(name = "fieldset", id = "corequisito")
-    for subject in corequisites_fieldset.find_all(name = "a"):
-      corequisites.append(subject.text)
+    
+    for prerequisite_span in corequisites_fieldset.find_all(name = "span", class_ = "links"):
+      corequisite = []
+
+      for subject in prerequisite_span.find_all(name = "a"):
+        corequisite.append(subject.text)
+
+      corequisites.append(corequisite)
 
     return corequisites
 
