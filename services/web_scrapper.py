@@ -27,35 +27,35 @@ class WebScrapper:
   ''' Lista com código de matérias optativas, atividades complementares, etc. '''
 
   @staticmethod
-  def get_subject_from_code(code: str) -> Subject | list[Subject]:
+  def is_code_from_optative_subjects_group(code: str) -> bool:
+    '''
+      Retorna True caso o código representar um grupo de optativas, caso contrário, é uma matéria normal.
+    '''
+    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
+    return soup.find(name = "fieldset", id = "grupoDisciplina") != None
+
+  @staticmethod
+  def get_subject_from_code(code: str) -> Subject:
     '''
       Retorna um Subject a partir do código da matéria.
-
-      Se o código for de um grupo de optativas, retorna uma lista de Subject com todas as opções.
     '''
     soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
 
-    if not soup.find(name = "fieldset", id = "grupoDisciplina"):
-      name = soup.find(name = "h3", id = "hTitulo").text
-      credits_amount = soup.find(name = "h3", id = "hCreditos").text
-      credits_amount = credits_amount.replace(" créditos", "").replace(" crйditos", "")
+    name = soup.find(name = "h3", id = "hTitulo").text
+    credits_amount_string = soup.find(name = "h3", id = "hCreditos").text
+    credits_amount = ""
+    for character in credits_amount_string:
+      if character >= '0' and character <= '9':
+        credits_amount += character
+    credits_amount = int(credits_amount)
 
-      return Subject(
-        code = code,
-        name = name,
-        credits_amount = int(credits_amount),
-        prerequisites = WebScrapper.get_subject_prerequisites(code),
-        corequisites = WebScrapper.get_corequisites(code),
-      )
-
-    else: # Grupo de optativas
-      subjects = []
-
-      optative_group = WebScrapper.get_optative_subjects_group_from_code(code)
-      for subject_code in optative_group.subjects:
-        subjects.append(WebScrapper.get_subject_from_code(subject_code))
-
-      return subjects
+    return Subject(
+      code = code,
+      name = name,
+      credits_amount = credits_amount,
+      prerequisites = WebScrapper.get_subject_prerequisites(code),
+      corequisites = WebScrapper.get_corequisites(code),
+    )
 
   @staticmethod
   def get_optative_subjects_group_from_code(code: str) -> OptativeSubjectsGroup:
@@ -223,7 +223,7 @@ class WebScrapper:
         if len(period) > 0: curriculum.append(period)
         period = []
       elif tr.find(name = "a"):
-        subject_code = tr.find(name = "a").text.strip()
+        subject_code = tr.find(name = "a").text.strip().replace(" ", "")
         if subject_code not in WebScrapper.__SPECIAL_SUBJECTS:
           period.append(subject_code)
 
