@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,django,visualstudiocode,replit
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,visualstudiocode,replit
 
+*.env
+
 ### Django ###
 *.log
 *.pot
