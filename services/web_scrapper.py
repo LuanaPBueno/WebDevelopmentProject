@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-from models.subject import Subject
-from models.optative_subjects_group import OptativeSubjectsGroup
-from models.course import Course
+from services.models.subject import Subject
+from services.models.optative_subjects_group import OptativeSubjectsGroup
+from services.models.course import Course
 
 class WebScrapper:
   __ALL_COURSES_PAGE = "https://www.puc-rio.br/ensinopesq/ccg/cursos.html"
@@ -87,7 +87,7 @@ class WebScrapper:
     prerequisites = []
 
     pre_requisites_fieldset = soup.find(name = "fieldset", id = "prerequisito")
-    if "Nenhum pre-requisito encontrado" in pre_requisites_fieldset.text:
+    if pre_requisites_fieldset == None or "Nenhum pre-requisito encontrado" in pre_requisites_fieldset.text:
       return []
 
     for prerequisite_span in pre_requisites_fieldset.find_all(name = "span", class_ = "links"):
@@ -112,6 +112,7 @@ class WebScrapper:
     corequisites = []
 
     corequisites_fieldset = soup.find(name = "fieldset", id = "corequisito")
+    if corequisites_fieldset == None: return []
     
     for prerequisite_span in corequisites_fieldset.find_all(name = "span", class_ = "links"):
       corequisite = []

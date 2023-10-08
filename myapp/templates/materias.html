@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Materias</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="{% static 'script.js' %}"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/arrows-svg@1.6.0/dist/main.min.js
+"></script>
+</head>
+<body>
+    <div class="materia-container" id="materia-container">
+        {% for materia in materias %}
+            <div class="box" 
+                 data-id="{{ materia.id }}" 
+                 data-pos="{{ forloop.counter0 }}" 
+                 data-interdependencias="{{ materia.interdependencias.all|join:',' }}">
+                
+                <strong>{{ materia.nome }}</strong><br>
+                {{ materia.codigo }}<br>
+                {{ materia.credito }} créditos
+            </div>
+        {% endfor %}
+    </div>
+        <script id="materias-data" type="application/json" >
+        [
+            {% for materia in materias %}
+            {
+                "id": {{ materia.id }},
+                "nome": "{{ materia.nome|escapejs }}",
+                "periodo": {{ materia.periodo }}, 
+                "interdependencias": [{% for interdependencia in materia.interdependencias.all %}{{ interdependencia.id }}{% if not forloop.last %}, {% endif %}{% endfor %}]
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+</html>
