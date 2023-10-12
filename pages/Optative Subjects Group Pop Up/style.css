@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: #000000DE;
+}
+
+div.column {
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+div.popup {
+    width: 60%;
+    height: 60%;
+    padding: 3%;
+    background: #fff;
+    border-radius: 10px;
+}
+
+a.subjectoption {
+    color: #000;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+	padding-bottom: 3px;
+    border-radius: 4px;
+	box-shadow: 0 2px 6px rgba(50,50,90,.1);
+}
