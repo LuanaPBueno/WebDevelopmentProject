@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebase Example</title>
+</head>
+<body>
+  <!--
+    Aqui você importa os arquivos do firebase pra usar no seu próprio js (é só copiar e colar as próximas linhas)
+    Se você colocar os arquivos dentro de outra pasta, não esqueça de adicionar outro "../" no src
+    É importante que eles estejam todos aqui, dentro do body
+  -->
+  <script type="module" src="../../services/firebase/firebase_config.js"></script> <!--Esse arquivo não está no versionamento, ele deve ser colocado nesse endereço (junto com o firebase.js)-->
+  <script type="module" src="../../services/firebase/firebase.js"></script>
+
+  <!--Importe seus códigos js aqui, o que utiliza o firebase precisa ser do tipo "module"-->
+  <script type="module" src="script.js"></script>
+
+  <!--
+    Essa é a tag que vai ser modificada pelo arquivo js que eu modifico como exemplo
+    O resto do código segue normalmente e você pode criar quantas outras tags quanto precisar
+  -->
+  <p id="complementary hours">Carregando...</p>
+</body>
+</html>
