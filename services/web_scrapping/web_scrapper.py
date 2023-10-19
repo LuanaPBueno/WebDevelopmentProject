@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-from services.models.subject import Subject
-from services.models.optative_subjects_group import OptativeSubjectsGroup
-from services.models.course import Course
+from services.web_scrapping.models.subject import Subject
+from services.web_scrapping.models.optative_subjects_group import OptativeSubjectsGroup
+from services.web_scrapping.models.course import Course
 
 class WebScrapper:
   __ALL_COURSES_PAGE = "https://www.puc-rio.br/ensinopesq/ccg/cursos.html"

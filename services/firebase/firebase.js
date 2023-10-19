@@ -10,6 +10,8 @@ export async function getCourse(course_name) {
   return {
     name: course_name,
     curriculum: course["curriculum"],
+    free_electives_amount: course["free_electives_amount"],
+    complementary_activities_amount: course["complementary_activities_amount"],
   };
 }
 
@@ -22,6 +24,8 @@ export async function getCourses() {
     courses[course.id] = {
       name: course.id,
       curriculum: courseData["curriculum"],
+      free_electives_amount: courseData["free_electives_amount"],
+      complementary_activities_amount: courseData["complementary_activities_amount"],
     };
   });
 
@@ -49,5 +53,32 @@ export async function getSubject(code) {
     code: code,
     name: subject["name"],
     prerequisites: subject["prerequisites"],
+    corequisites: subject["corequisites"],
   };
+}
+
+export async function getOptativeSubjectsGroup(code) {
+  let docSnapshot = await getDoc(doc(database, "optative_subjects_groups", code));
+  if (!docSnapshot.exists()) return null;
+
+  let group = docSnapshot.data();
+
+  return {
+    code: code,
+    name: group["name"],
+    subjects: group["subjects"],
+  }
+}
+
+async function registerSubjects() {
+  let subjects = [
+
+  ];
+
+  for (const subject of subjects) {
+    await setDoc(
+      doc(database, "subjects", subject["code"]),
+      subject,
+    );
+  }
 }
