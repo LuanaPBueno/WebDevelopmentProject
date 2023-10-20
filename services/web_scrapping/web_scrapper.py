@@ -32,14 +32,14 @@ class WebScrapper:
       Retorna True caso o código representar um grupo de optativas, caso contrário, é uma matéria normal.
     '''
     soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
-    return soup.find(name = "fieldset", id = "grupoDisciplina") != None
+    return soup.find(name = "fieldset", id = "grupoDisciplina") != None, soup
 
   @staticmethod
-  def get_subject_from_code(code: str) -> Subject:
+  def get_subject_from_code(code: str, soup = None) -> Subject:
     '''
       Retorna um Subject a partir do código da matéria.
     '''
-    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
+    if soup == None: soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
 
     name = soup.find(name = "h3", id = "hTitulo").text
     credits_amount_string = soup.find(name = "h3", id = "hCreditos").text
@@ -58,11 +58,11 @@ class WebScrapper:
     )
 
   @staticmethod
-  def get_optative_subjects_group_from_code(code: str) -> OptativeSubjectsGroup:
+  def get_optative_subjects_group_from_code(code: str, soup = None) -> OptativeSubjectsGroup:
     '''
       Retorna um OptativeSubjectsGroup a partir do código da matéria.
     '''
-    soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
+    if soup == None: soup = WebScrapper.__get_soup_from_link(WebScrapper.__SUBJECT_BASE_URL + code)
 
     subjects_group = soup.find(name = "fieldset", id = "grupoDisciplina")
     if subjects_group == None : raise Exception(f"Subject with code {code} is not a optative subjects group")

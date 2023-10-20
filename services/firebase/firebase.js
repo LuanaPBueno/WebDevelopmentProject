@@ -48,7 +48,7 @@ export async function getCourses() {
 /** Retorna o nome dos cursos em um array de strings */
 export async function getCourseNames() {
   let docs = await getDocs(collection(database, "courses"));
-  
+
   let names = [];
   docs.forEach(course => {
     names.push(course.id);
@@ -111,15 +111,44 @@ export async function getOptativeSubjectsGroup(code) {
   }
 }
 
-async function registerSubjects() {
-  let subjects = [
-
-  ];
-
+async function registerSubjects(subjects) {
+  let i = 0;
   for (const subject of subjects) {
+    console.log(i/subjects.length * 100);
     await setDoc(
       doc(database, "subjects", subject["code"]),
       subject,
     );
+    i++;
   }
 }
+
+async function registerSubjectUnlocks() {
+  let subjects = await getDocs(collection(database, "subjects"));
+
+  console.log("Iniciando relação entre matérias");
+
+  for (const subjectCode of Object.keys(subjects)) {
+    let subject = subjects[subjectCode];
+    subject["unlocks"] = [];
+
+    for (const possiblyUnlockableSubjectCode of Object.keys(subjects)) {
+      let possiblyUnlockableSubject = subjects[possiblyUnlockableSubjectCode];
+
+      if (possiblyUnlockableSubject.prerequisites.includes(possiblyUnlockableSubjectCode)) {
+        subject["unlocks"].push(possiblyUnlockableSubjectCode);
+      }
+    }
+  }
+
+  console.log("Iniciando registro no firebas");
+
+  for (const subjectCode of Object.keys(subjects)) {
+    let subject = subjects[subjectCode];
+    await setDoc(
+      doc(database, "subjects", subjectCode),
+      subject,
+    );
+  }
+}
+
