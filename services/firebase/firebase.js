@@ -1,5 +1,5 @@
 import { database } from "./firebase_config.js"
-import { collection, doc, getDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore.js"
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore.js"
 
 /**
  * Retorna um objeto de curso de acordo com o nome passado por parâmetro
@@ -128,27 +128,33 @@ async function registerSubjectUnlocks() {
 
   console.log("Iniciando relação entre matérias");
 
-  for (const subjectCode of Object.keys(subjects)) {
-    let subject = subjects[subjectCode];
+  subjects.forEach(subject => {
+    subject = subject.data();
     subject["unlocks"] = [];
 
-    for (const possiblyUnlockableSubjectCode of Object.keys(subjects)) {
-      let possiblyUnlockableSubject = subjects[possiblyUnlockableSubjectCode];
+    subjects.forEach(possiblyUnlockableSubjectCode => {
+      let possiblyUnlockableSubject = possiblyUnlockableSubjectCode.data();
 
-      if (possiblyUnlockableSubject.prerequisites.includes(possiblyUnlockableSubjectCode)) {
-        subject["unlocks"].push(possiblyUnlockableSubjectCode);
+      for (const prerequisite_key of Object.keys(possiblyUnlockableSubject["prerequisites"])) {
+        let prerequisite = possiblyUnlockableSubject["prerequisites"][prerequisite_key];
+        if (prerequisite.includes(possiblyUnlockableSubjectCode)) {
+          subject["unlocks"].push(possiblyUnlockableSubjectCode);
+          break;
+        }
       }
-    }
-  }
+    });
+  });
 
-  console.log("Iniciando registro no firebas");
+  console.log("Iniciando registro no firebase");
 
-  for (const subjectCode of Object.keys(subjects)) {
-    let subject = subjects[subjectCode];
-    await setDoc(
-      doc(database, "subjects", subjectCode),
-      subject,
+  subjects.forEach(async subject => {
+    let subjectData = subject.data();
+    await updateDoc(
+      doc(database, "subjects", subject.id),
+      subjectData,
     );
-  }
+  });
+
+  console.log("Registro finalizado com sucesso");
 }
 
