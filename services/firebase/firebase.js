@@ -72,6 +72,8 @@ export async function getCourseNames() {
  * 
  * "corequisites" é um dicionário que funciona como uma lista de possibilidades de corequisitos,
  * cada possibilidade é uma lista de strings contendo o código de matérias que são corequisitos dessa matéria
+ * 
+ * "unlocks" é uma lista de strings contendo o código de matérias desbloqueadas assim que a matéria é concluída
  */
 export async function getSubject(code) {
   let docSnapshot = await getDoc(doc(database, "subjects", code));
@@ -84,6 +86,7 @@ export async function getSubject(code) {
     name: subject["name"],
     prerequisites: subject["prerequisites"],
     corequisites: subject["corequisites"],
+    unlocks: subject["unlocks"],
   };
 }
 
@@ -125,20 +128,22 @@ async function registerSubjects(subjects) {
 
 async function registerSubjectUnlocks() {
   let subjects = await getDocs(collection(database, "subjects"));
+  let updatedData = {};
 
   console.log("Iniciando relação entre matérias");
 
   subjects.forEach(subject => {
-    subject = subject.data();
-    subject["unlocks"] = [];
+    updatedData[subject.id] = subject.data();
+    updatedData[subject.id]["unlocks"] = [];
 
     subjects.forEach(possiblyUnlockableSubjectCode => {
       let possiblyUnlockableSubject = possiblyUnlockableSubjectCode.data();
 
-      for (const prerequisite_key of Object.keys(possiblyUnlockableSubject["prerequisites"])) {
-        let prerequisite = possiblyUnlockableSubject["prerequisites"][prerequisite_key];
-        if (prerequisite.includes(possiblyUnlockableSubjectCode)) {
-          subject["unlocks"].push(possiblyUnlockableSubjectCode);
+      for (const prerequisiteKey of Object.keys(possiblyUnlockableSubject["prerequisites"])) {
+        let prerequisite = possiblyUnlockableSubject["prerequisites"][prerequisiteKey];
+        if (prerequisite.includes(subject.id)) {
+          console.log(possiblyUnlockableSubjectCode.id);
+          updatedData[subject.id]["unlocks"].push(possiblyUnlockableSubjectCode.id);
           break;
         }
       }
@@ -148,13 +153,11 @@ async function registerSubjectUnlocks() {
   console.log("Iniciando registro no firebase");
 
   subjects.forEach(async subject => {
-    let subjectData = subject.data();
     await updateDoc(
       doc(database, "subjects", subject.id),
-      subjectData,
+      {"unlocks": updatedData[subject.id]["unlocks"]},
     );
   });
 
   console.log("Registro finalizado com sucesso");
 }
-
