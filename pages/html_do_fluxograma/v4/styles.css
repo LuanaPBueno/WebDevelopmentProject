@@ -1,0 +1,148 @@
+/* Center the course name at the top of the screen */
+#course-title {
+  font-family: 'Kanit', sans-serif;
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  margin-top: 20px;
+  text-shadow: 0px 3px 4px #767676;
+}
+
+/* Update the highlight color for prerequisites to light yellow */
+.highlight {
+  background-color: lightyellow;
+}
+
+/* Make sure all periods appear side by side */
+.periods {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+}
+
+.period {
+  font-family: 'Kanit', sans-serif;
+  flex: 1;
+  border: 1px solid #ccc;
+  margin: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+/* Make the background color of the subject boxes white */
+.subject {
+  font-family: 'Kanit', sans-serif;
+  background-color: white;
+  padding: 5px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#period-1 {
+  background-color: lightblue;
+}
+#period-2 {
+  background-color: lightgreen;
+}
+#period-3 {
+  background-color: lightpink;
+}
+#period-4 {
+  background-color: rgb(35, 127, 249);
+}
+#period-5 {
+  background-color: lightcoral;
+}
+#period-6 {
+  background-color: lightgray;
+}
+#period-7 {
+  background-color: lightsalmon;
+}
+#period-8 {
+  background-color: lightseagreen;
+}
+
+.highlight-prereq {
+  background-color: lightyellow;
+}
+
+.highlight-most-unlocking {
+  background-color: blue;
+}
+
+.subject[style*="background-color: orange"] {
+  background-color: orange !important;
+}
+
+#button-container {
+  
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Estilos do novo botão */
+.button-56 {
+  align-items: center;
+  background-color: #fee6e3;
+  border: 2px solid #111;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #111;
+  cursor: pointer;
+  display: flex;
+  font-family: 'Kanit', sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  height: 48px;
+  justify-content: center;
+  line-height: 24px;
+  max-width: 100%;
+  padding: 0 25px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-56:after {
+  background-color: #111;
+  border-radius: 8px;
+  content: "";
+  display: block;
+  height: 48px;
+  left: 0;
+  width: 100%;
+  position: absolute;
+  top: -2px;
+  transform: translate(8px, 8px);
+  transition: transform .2s ease-out;
+  z-index: -1;
+}
+
+.button-56:hover:after {
+  transform: translate(0, 0);
+}
+
+.button-56:active {
+  background-color: #ffdeda;
+  outline: 0;
+}
+
+.button-56:hover {
+  outline: 0;
+}
+
+@media (min-width: 768px) {
+  .button-56 {
+    padding: 0 40px;
+  }
+}
