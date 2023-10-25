@@ -123,7 +123,7 @@
   width: 100%;
   position: absolute;
   top: -2px;
-  transform: translate(8px, 8px);
+  transform: translate(0px, 8px);
   transition: transform .2s ease-out;
   z-index: -1;
 }
