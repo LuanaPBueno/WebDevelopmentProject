@@ -3,7 +3,7 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "https://www
 
 /**
  * Retorna um objeto de curso de acordo com o nome passado por parâmetro
- * @param {string} course_name Nome do curso no site da PUC
+ * @param {string} course_name string com nome do curso de acordo com o site da PUC
  * @returns Objeto de curso:
  * 
  * "name" é a string que representa o nome, por conveniência
@@ -68,12 +68,14 @@ export async function getCourseNames() {
  * 
  * "prerequisites" é um dicionário que funciona como uma lista de possibilidades de pré-requisitos,
  * cada possibilidade é uma lista de strings contendo o código de matérias que são pré-requisitos dessa matéria.
- * Considere utilizar a função "getSubjectPrerequisitesFromCourse" para receber os pré-requisitos em um curso específico
+ * Pré-requisitos que não sejam o código de uma matéria tem um '_' na frente.
+ * Considere utilizar a função "getSubjectPrerequisitesFromCourse" para receber os pré-requisitos em um curso específico.
  * 
  * "corequisites" é um dicionário que funciona como uma lista de possibilidades de corequisitos,
  * cada possibilidade é uma lista de strings contendo o código de matérias que são corequisitos dessa matéria
  * 
- * "unlocks" é uma lista de strings contendo o código de matérias desbloqueadas assim que a matéria é concluída
+ * "unlocks" é um array de strings contendo o código de matérias desbloqueadas assim que a matéria é concluída.
+ * Considere utiilizar a função "getSubjectUnlocksFromCourse" para receber as matérias desbloqueadas em um curso específico.
  */
 export async function getSubject(code) {
   let docSnapshot = await getDoc(doc(database, "subjects", code));
@@ -88,6 +90,92 @@ export async function getSubject(code) {
     corequisites: subject["corequisites"],
     unlocks: subject["unlocks"],
   };
+}
+
+/**
+ * Retorna um dicionário que funciona como uma lista de possibilidades de pré-requisitos,
+ * e que fazem parte do curso com nome courseName
+ * @param {string} subjectCode string com código da matéria
+ * @param {string} courseName string com nome do curso de acordo com o site da PUC
+ * @returns
+ * dicionário que funciona como uma lista de possibilidades de pré-requisitos,
+ * cada possibilidade é uma lista de strings contendo o código de matérias que são pré-requisitos dessa matéria.
+ * 
+ * Pré-requisitos que não sejam o código de uma matéria tem um '_' na frente.
+ * 
+ * Como só fazem parte da lista pré-requisitos que não são matérias e matérias presentes no curso,
+ * é possível que uma matéria tenha pré-requisitos, mas nenhum deles faça parte do curso.
+ * Nesse caso, a função retorna esse dicionário: { 0: "A matéria contém pré-requisitos, mas nenhum deles faz parte do curso." }
+*/
+export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName) {
+  let prerequisitesInCourse = {};
+  let prerequisites = (await getSubject(subjectCode)).prerequisites;
+  let curriculum = (await getCourse(courseName)).curriculum;
+
+  if (Object.values(prerequisites).length == 0) return {};
+
+  let prerequisiteNumber = 0;
+  for (const prerequisite of Object.values(prerequisites)) {
+    let shouldIncludePrerequisite = true;
+
+    // Verificação se todas as matérias do pré-requisito fazem parte do curso
+    for (const period of Object.values(curriculum)) {
+      for (const subjectCode of period) {
+        if (subjectCode.includes("_")) continue;
+
+        if (!prerequisite.includes(subjectCode)) {
+          shouldIncludePrerequisite = false;
+        }
+      }
+    }
+
+    if (shouldIncludePrerequisite) {
+      prerequisitesInCourse[prerequisiteNumber] = prerequisite;
+    }
+  }
+
+  if (Object.values(prerequisitesInCourse).length == 0) {
+    return { 0: "A matéria contém pré-requisitos, mas nenhum deles faz parte do curso." }
+  }
+
+  return prerequisitesInCourse;
+}
+
+/**
+ * Retorna um array com os códigos de todas as matérias desbloqueadas quando a matéria é concluída,
+ * e que fazem parte do curso com nome courseName
+ * @param {string} subjectCode string com código da matéria
+ * @param {string} courseName string com nome do curso de acordo com o site da PUC
+ * @returns {Array<string>} array de strings contendo o código das matérias desbloqueadas
+*/
+export async function getSubjectUnlocksFromCourse(subjectCode, courseName) {
+  let unlocks = [];
+  let subject = await getSubject(subjectCode);
+  let course = await getCourse(courseName);
+
+  for (const subjectCode of subject.unlocks) {
+    for (const period of Object.values(course.curriculum)) {
+      for (const courseSubjectCode of period) {
+        if (!await isCodeFromOptativeSubjectsGroup(courseSubjectCode)) {
+          if (subjectCode === courseSubjectCode) {
+            unlocks.push(subjectCode);
+          }
+
+        } else { // Verificar matérias de grupos de optativas
+          let group = await getOptativeSubjectsGroup(courseSubjectCode);
+
+          for (const optativeSubjectCode of group.subjects) {
+            if (subjectCode === optativeSubjectCode) {
+              unlocks.push(subjectCode);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return unlocks;
 }
 
 /**
@@ -112,6 +200,16 @@ export async function getOptativeSubjectsGroup(code) {
     name: group["name"],
     subjects: group["subjects"],
   }
+}
+
+/**
+ * Retorna true caso o código seja um grupo de matérias optativas no banco de dados
+ * @param {string} code string com código da matéria
+ * @returns {boolean} boolean se o código é de um grupo de optativas ou não
+*/
+export async function isCodeFromOptativeSubjectsGroup(code) {
+  let docSnapshot = await getDoc(doc(database, "optative_subjects_groups", code));
+  return docSnapshot.exists();
 }
 
 async function registerSubjects(subjects) {
