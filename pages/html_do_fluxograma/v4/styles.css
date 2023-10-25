@@ -21,7 +21,16 @@
   justify-content: space-around;
 }
 
+.scroll-container {
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: scroll; /* Adicione scroll horizontal */
+  border: 1px solid #ccc;
+  display: flex; /* Use flexbox para alinhar elementos horizontalmente */
+}
+
 .period {
+  display: inline-block;
   font-family: 'Kanit', sans-serif;
   flex: 1;
   border: 1px solid #ccc;
