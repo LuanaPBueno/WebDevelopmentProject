@@ -20,12 +20,57 @@ export async function getCourse(course_name) {
 
   let course = docSnapshot.data();
 
+  let curriculum = course["curriculum"];
+  if (course_name === "Design" || course_name === "Estudos de Mídia") {
+    await fixEquivalentGroups(curriculum, course_name);
+  }
+
   return {
     name: course_name,
-    curriculum: course["curriculum"],
+    curriculum: curriculum,
     free_electives_amount: course["free_electives_amount"],
     complementary_activities_amount: course["complementary_activities_amount"],
   };
+}
+
+/** Grupos de optativas equivalentes */
+const specialOptativeSubjectGroups = [
+  "COM0311", "COM0314",
+  "DSG0001", "DSG0002", "DSG0003", "DSG0004", "DSG0005", "DSG0006", "DSG0010", "DSG0011", "DSG0012", "DSG0013", "DSG0014", "DSG0015",
+];
+/** Corrige os grupos de optativas que são equivalentes no currículo de um curso tratando cada uma caso a caso. */
+async function fixEquivalentGroups(curriculum, courseName) {
+  let periodNumber = 0;
+  for (const period of Object.values(curriculum)) {
+    let fixedPeriod = [];
+
+    // Removendo grupos equivalentes
+    for (const subjectCode of period) {
+      if (!specialOptativeSubjectGroups.includes(subjectCode)) {
+        fixedPeriod.push(subjectCode);
+      }
+    }
+
+    // Adicionando os grupos artificiais
+    switch (courseName) {
+      case "Design":
+        if (periodNumber >= 4 && periodNumber <= 7) {
+          let artificialGroup = "DSGS00" + (periodNumber - 3).toString();
+          fixedPeriod.push(artificialGroup);
+        }
+        break;
+
+      case "Estudos de Mídia":
+        if (periodNumber >= 3 && periodNumber <= 6) {
+          let artificialGroup = "COMS001";
+          for (let i = 0; i < 3; i++) fixedPeriod.push(artificialGroup);
+        }
+        break;
+    }
+
+    curriculum[periodNumber] = fixedPeriod;
+    periodNumber++;
+  }
 }
 
 export async function getCourses() {
@@ -76,7 +121,7 @@ export async function getCourseNames() {
  * 
  * "unlocks" é um array de strings contendo o código de matérias desbloqueadas assim que a matéria é concluída.
  * Considere utiilizar a função "getSubjectUnlocksFromCourse" para receber as matérias desbloqueadas em um curso específico.
- */
+*/
 export async function getSubject(code) {
   let docSnapshot = await getDoc(doc(database, "subjects", code));
   if (!docSnapshot.exists()) return null;
@@ -222,6 +267,13 @@ async function registerSubjects(subjects) {
     );
     i++;
   }
+}
+
+async function registerOptativeGroup(group_data) {
+  await setDoc(
+    doc(database, "optative_subjects_groups", group_data["code"]),
+    group_data,
+  );
 }
 
 async function registerSubjectUnlocks() {

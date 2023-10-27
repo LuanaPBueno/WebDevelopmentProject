@@ -190,6 +190,7 @@ pyrightconfig.json
 replit.nix
 
 ### VisualStudioCode ###
+.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -209,6 +210,3 @@ replit.nix
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/replit,firebase,visualstudiocode,python
-
-firebase_config.js
-.vscode/
