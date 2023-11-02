@@ -1,4 +1,3 @@
-
 const courseName = 'Ciência da Computação';
 
 const courseData = [
@@ -13,13 +12,13 @@ const courseData = [
     period: 2,
     subjects: [
       { name: 'Cálculo I', prereqs: ['Matemática'] },
-      { name: 'Programação II', prereqs: ['Programação I'] }
+      { name: 'Programação II', prereqs: ['Programação I','Matemática'] }
     ]
   },
   {
     period: 3,
     subjects: [
-      { name: 'Estruturas de Dados', prereqs: ['Programação II'] },
+      { name: 'Estruturas de Dados', prereqs: ['Programação II','Matemática'] },
       { name: 'Física I', prereqs: ['Cálculo I'] }
     ]
   },
@@ -27,7 +26,7 @@ const courseData = [
     period: 4,
     subjects: [
       { name: 'Teoria dos Grafos', prereqs: ['Estruturas de Dados'] },
-      { name: 'Física II', prereqs: ['Física I'] }
+      { name: 'Física II', prereqs: ['Física I','Matemática'] }
     ]
   },
   {
@@ -48,13 +47,13 @@ const courseData = [
     period: 7,
     subjects: [
       { name: 'Compiladores', prereqs: ['Teoria dos Grafos'] },
-      { name: 'Sistemas Operacionais', prereqs: ['Estruturas de Dados'] }
+      { name: 'Sistemas Operacionais', prereqs: ['Estruturas de Dados','Matemática'] }
     ]
   },
   {
     period: 8,
     subjects: [
-      { name: 'Projeto Final', prereqs: ['Engenharia de Software'] },
+      { name: 'Projeto Final', prereqs: ['Engenharia de Software','Compiladores','Teoria dos Grafos'] },
       { name: 'Ética em Computação', prereqs: [] }
     ]
   }
