@@ -72,23 +72,26 @@ document.addEventListener('DOMContentLoaded', () => {
     highlightMostPrerequisites = !highlightMostPrerequisites;
     if (highlightMostPrerequisites) {
       setSubjectBackground();
+      toggleMostUnlockingButton.disabled = true;
     } else {
       resetSubjectBackground();
+      toggleMostUnlockingButton.disabled = false;
     }
   }
 
   function toggleHighlightMostUnlocking() {
     highlightMostUnlocking = !highlightMostUnlocking;
     if (highlightMostUnlocking) {
-      // Aqui é definido o destaque para as disciplinas que desbloqueiam outras.
       const sortedUnlockCounts = Object.entries(unlockCounts).sort((a, b) => b[1] - a[1]);
       sortedUnlockCounts.forEach(([subjectName], index) => {
         const el = document.querySelector(`[data-id="${subjectIds[subjectName]}"]`);
         el.style.backgroundColor = index === 0 ? 'blue' : (index === 1 ? 'lightblue' : 'lightsteelblue');
         el.classList.add('highlight-most-unlocking');
       });
+      toggleButton.disabled = true;
     } else {
       resetSubjectBackground();
+      toggleButton.disabled = false;
     }
   }
 
@@ -109,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.subject').forEach(subject => {
     subject.addEventListener('mouseover', function() {
       const prereqs = this.getAttribute('data-prereq');
-      if (prereqs) {
+      if (!highlightMostPrerequisites && !highlightMostUnlocking && prereqs) {
         prereqs.split(',').forEach(id => {
           const highlightEl = document.querySelector(`[data-id="${id}"]`);
           highlightEl.style.backgroundColor = 'lightyellow';
@@ -123,4 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Desativar os botões no início
+  toggleButton.disabled = false;
+  toggleMostUnlockingButton.disabled = false;
 });
