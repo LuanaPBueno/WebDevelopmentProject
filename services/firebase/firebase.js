@@ -146,7 +146,7 @@ export async function getSubject(code) {
  * dicionário que funciona como uma lista de possibilidades de pré-requisitos,
  * cada possibilidade é uma lista de strings contendo o código de matérias que são pré-requisitos dessa matéria.
  * 
- * Pré-requisitos que não sejam o código de uma matéria tem um '_' na frente.
+ * Essa função não inclui pré-requisitos que não sejam matérias.
  * 
  * Como só fazem parte da lista pré-requisitos que não são matérias e matérias presentes no curso,
  * é possível que uma matéria tenha pré-requisitos, mas nenhum deles faça parte do curso.
@@ -164,19 +164,34 @@ export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName)
     let shouldIncludePrerequisite = true;
 
     // Verificação se todas as matérias do pré-requisito fazem parte do curso
-    for (const period of Object.values(curriculum)) {
-      for (const subjectCode of period) {
-        if (subjectCode.includes("_")) continue;
+    for (const subjectCode of prerequisite) {
+      let subjectInCurriculum = false;
 
-        if (!prerequisite.includes(subjectCode)) {
-          shouldIncludePrerequisite = false;
+      if (subjectCode.includes("_")) shouldIncludePrerequisite = false;
+
+      for (const period of Object.values(curriculum)) {
+        if (period.includes(subjectCode)) {
+          subjectInCurriculum = true;
+
+        } else {
+          // Matérias de grupos de optativas
+          for (const periodSubjectCode of period) {
+            let group = await getOptativeSubjectsGroup(periodSubjectCode);
+            if (!group) continue;
+
+            if (group.subjects.includes(subjectCode)) {
+              subjectInCurriculum = true;
+              break;
+            }
+          }
         }
       }
+      if (!subjectInCurriculum) shouldIncludePrerequisite = false;
     }
 
-    if (shouldIncludePrerequisite) {
-      prerequisitesInCourse[prerequisiteNumber] = prerequisite;
-    }
+    if (!shouldIncludePrerequisite) continue;
+    prerequisitesInCourse[prerequisiteNumber] = prerequisite;
+    prerequisiteNumber++;
   }
 
   if (Object.values(prerequisitesInCourse).length == 0) {
