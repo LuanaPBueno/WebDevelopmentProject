@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { getCourseNames, getCourse, getOptativeSubjectsGroup, getSubject, getSubjectPrerequisitesFromCourse } from "../../services/firebase/firebase.js";
+
+document.addEventListener('DOMContentLoaded', async () => {
   let highlightMostPrerequisites = false;
   let highlightMostUnlocking = false;
 
@@ -6,47 +8,79 @@ document.addEventListener('DOMContentLoaded', () => {
   const prereqCounts = {};
   const unlockCounts = {};
 
+  let courseName = "Ciência da Computação";
+  let course = await getCourse(courseName);
+  // TODO adicionar cursos com await getCourseNames();
+
   document.getElementById('course-title').textContent = courseName;
 
   const periodsContainer = document.querySelector('.periods');
   let subjectGlobalId = 1;
+  let periodNumber = 1;
 
-  courseData.forEach((data) => {
+  for (const period of Object.values(course.curriculum)) {
     const periodEl = document.createElement('div');
     periodEl.className = 'period';
-    periodEl.id = `period-${data.period}`;
+    periodEl.id = `period-${periodNumber}`;
 
     const titleEl = document.createElement('h3');
-    titleEl.textContent = `${data.period}º Período`;
+    titleEl.textContent = `${periodNumber}º Período`;
     periodEl.appendChild(titleEl);
 
-    data.subjects.forEach((subjectData) => {
-      const subjectEl = document.createElement('div');
-      subjectEl.className = 'subject';
-      subjectEl.setAttribute('data-id', subjectGlobalId);
-      subjectIds[subjectData.name] = subjectGlobalId;
-      subjectEl.textContent = subjectData.name;
-      periodEl.appendChild(subjectEl);
+    for (const code of period) {
+      let subject = await getSubject(code);
+      if (subject) {
+        const subjectEl = document.createElement('div');
+        subjectEl.className = 'subject';
+        subjectEl.setAttribute('data-id', subjectGlobalId);
+        subjectIds[subject.name] = subjectGlobalId;
+        subjectEl.textContent = subject.name;
+        periodEl.appendChild(subjectEl);
+
+      } else {
+        let group = await getOptativeSubjectsGroup(code);
+        if (!group) continue;
+
+        const subjectEl = document.createElement('div');
+        subjectEl.className = 'subject';
+        subjectEl.setAttribute('data-id', subjectGlobalId);
+        subjectIds[group.name] = subjectGlobalId;
+        subjectEl.textContent = group.name;
+        periodEl.appendChild(subjectEl);
+      }
 
       subjectGlobalId++;
-    });
+    }
 
     periodsContainer.appendChild(periodEl);
-  });
+    periodNumber++;
+  }
 
-  courseData.forEach((data) => {
-    data.subjects.forEach((subjectData) => {
-      const subjectEl = document.querySelector(`[data-id="${subjectIds[subjectData.name]}"]`);
-      const prereqIds = subjectData.prereqs.map(name => subjectIds[name]).join(',');
+  for (const period of Object.values(course.curriculum)) {
+    for (const subjectCode of period) {
+      let subject = await getSubject(subjectCode);
+      if (!subject) continue;
+
+      console.log(subject.name);
+
+      let prerequisites = await getSubjectPrerequisitesFromCourse(subject.code, courseName);
+      if (Object.keys(prerequisites).length == 0) continue;
+      prerequisites = prerequisites[0];
+      if (prerequisites === "A matéria contém pré-requisitos, mas nenhum deles faz parte do curso.") continue;
+
+      console.log(prerequisites);
+
+      const subjectEl = document.querySelector(`[data-id="${subjectIds[subject.name]}"]`);
+      const prereqIds = prerequisites.map(name => subjectIds[name]).join(',');
       subjectEl.setAttribute('data-prereq', prereqIds);
 
-      prereqCounts[subjectData.name] = subjectData.prereqs.length;
+      prereqCounts[subject.name] = prerequisites.length;
 
-      subjectData.prereqs.forEach((prereq) => {
+      prerequisites.forEach((prereq) => {
         unlockCounts[prereq] = (unlockCounts[prereq] || 0) + 1;
       });
-    });
-  });
+    }
+  }
 
   function toggleHighlightMostPrerequisites() {
     highlightMostPrerequisites = !highlightMostPrerequisites;
