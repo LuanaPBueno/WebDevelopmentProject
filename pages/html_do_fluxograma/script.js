@@ -1,6 +1,29 @@
 import { getCourseNames, getCourse, getOptativeSubjectsGroup, getSubject, getSubjectPrerequisitesFromCourse } from "../../services/firebase/firebase.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
+  let courseNames = await getCourseNames();
+  await loadCourseOptionsDropDownButton(courseNames);
+  await loadPage();
+});
+
+document.getElementById("course-options").addEventListener("change", loadPage);
+
+async function loadCourseOptionsDropDownButton(courseNames) {
+  let dropdownButton = document.getElementById("course-options");
+
+  courseNames.forEach(courseName => {
+    let option = document.createElement("option");
+    option.value = courseName;
+    option.text = courseName;
+
+    dropdownButton.appendChild(option);
+  });
+}
+
+async function loadPage() {
+  let courseName = document.getElementById("course-options").value;
+  let course = await getCourse(courseName);
+
   let highlightMostPrerequisites = false;
   let highlightMostUnlocking = false;
 
@@ -8,13 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const prereqCounts = {};
   const unlockCounts = {};
 
-  let courseName = "Ciência da Computação";
-  let course = await getCourse(courseName);
-  // TODO adicionar cursos com await getCourseNames();
-
   document.getElementById('course-title').textContent = courseName;
 
   const periodsContainer = document.querySelector('.periods');
+  periodsContainer.replaceChildren();
+  // FIXME remover períodos que estão sendo adicionados assincronamente em chamadas anteriores da função
+
   let subjectGlobalId = 1;
   let periodNumber = 1;
 
@@ -176,4 +198,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-});
+}
