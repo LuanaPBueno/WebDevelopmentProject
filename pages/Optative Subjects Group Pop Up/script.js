@@ -1,34 +1,33 @@
-class OptativeSubjectsGroup {
-  constructor(name, code, subjects) {
-    this.name = name;
-    this.code = code;
-    this.subjects = subjects;
-  }
-}
+import { getOptativeSubjectsGroup } from "../../services/firebase/firebase.js";
 
-const group = new OptativeSubjectsGroup(
-  "OPTATIVAS DE COMPUTACAO CIENTIFICA",
-  "INF0305",
-  {
-    "INF1032": "INTRODUCAO A CIENCIA DOS DADOS",
-    "INF1608": "ANALISE NUMERICA I",
-    "INF1761": "COMPUTACAO GRAFICA",
-  },
-)
-
-document.addEventListener("DOMContentLoaded", function () {
-  document.title = group.name;
-  const titleH1 = document.getElementById("title");
-  titleH1.textContent = group.name + " (" + group.code + ")";
-
-  const subjectsDiv = document.getElementById("subjectsList");
-  for (const key in group.subjects) {
-    const subjectA = document.createElement("a");
-    subjectA.textContent = group.subjects[key] + " (" + key + ")";
-    subjectA.href = "https://www.puc-rio.br/ferramentas/ementas/ementa.aspx?cd=" + key;
-    subjectA.className = "subjectoption";
-
-    const br = document.createElement("br");
-    subjectsDiv.append(subjectA, br);
-  }
+document.addEventListener("DOMContentLoaded", async function () {
+  const form = document.getElementById('searchForm');
+  
+  form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const inputCode = document.getElementById('searchInput').value.toUpperCase();
+    const subjectsDiv = document.getElementById('subjectsList');
+    subjectsDiv.innerHTML = ''; // Limpar resultados anteriores
+    
+    try {
+      const subjectsGroup = await getOptativeSubjectsGroup(inputCode);
+      
+      if (subjectsGroup && subjectsGroup.subjects) {
+        for (const key in subjectsGroup.subjects) {
+          const subjectName = subjectsGroup.subjects[key];
+          const subjectA = document.createElement("a");
+          subjectA.textContent = subjectName + " (" + key + ")";
+          subjectA.href = "https://www.puc-rio.br/ferramentas/ementas/ementa.aspx?cd=" + key;
+          subjectA.className = "subjectoption";
+          subjectsDiv.appendChild(subjectA);
+          subjectsDiv.appendChild(document.createElement("br"));
+        }
+      } else {
+        subjectsDiv.textContent = 'Nenhuma matéria encontrada para o código: ' + inputCode;
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      subjectsDiv.textContent = 'Erro ao buscar matérias. Tente novamente mais tarde.';
+    }
+  });
 });

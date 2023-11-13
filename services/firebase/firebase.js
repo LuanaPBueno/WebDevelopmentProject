@@ -155,7 +155,7 @@ export async function getSubject(code) {
 export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName) {
   let prerequisitesInCourse = {};
   let prerequisites = (await getSubject(subjectCode)).prerequisites;
-  let curriculum = (await getCourse(courseName)).curriculum;
+  let curriculum = (await Course(courseName)).curriculum;
 
   if (Object.values(prerequisites).length == 0) return {};
 
