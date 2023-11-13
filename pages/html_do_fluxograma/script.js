@@ -35,7 +35,7 @@ async function loadPage() {
 
   const periodsContainer = document.querySelector('.periods');
   periodsContainer.replaceChildren();
-  // FIXME remover períodos que estão sendo adicionados assincronamente em chamadas anteriores da função
+  let containerChildren = [];
 
   let subjectGlobalId = 1;
   let periodNumber = 1;
@@ -74,9 +74,11 @@ async function loadPage() {
       subjectGlobalId++;
     }
 
-    periodsContainer.appendChild(periodEl);
+    containerChildren.push(periodEl);
     periodNumber++;
   }
+
+  periodsContainer.replaceChildren(...containerChildren);
 
   for (const period of Object.values(course.curriculum)) {
     for (const subjectCode of period) {
