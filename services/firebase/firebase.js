@@ -326,3 +326,36 @@ async function registerSubjectUnlocks() {
 
   console.log("Registro finalizado com sucesso");
 }
+
+async function createAllSubjectFields() {
+  let courses = await getDocs(collection(database, "courses"));
+
+  courses.forEach(async course => {
+    let data = course.data();
+    let all_subjects = [];
+
+    for (const period of Object.values(data["curriculum"])) {
+      for (const courseCode of period) {
+        if (getSubject(courseCode) != null) {
+          if (!all_subjects.includes(courseCode)) all_subjects.push(courseCode);
+
+        } else {
+          let group = await getOptativeSubjectsGroup(courseCode);
+
+          if (group == null) continue;
+
+          for (const subjectCode of group.subjects) {
+            if (!all_subjects.includes(subjectCode)) all_subjects.push(subjectCode);
+          }
+        }
+      }
+    }
+    console.log(course.id);
+    console.log(all_subjects);
+
+    await updateDoc(
+      doc(database, "courses", course.id),
+      {"all_subjects": all_subjects},
+    );
+  });
+}
