@@ -3,7 +3,7 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "https://www
 
 /**
  * Retorna um objeto de curso de acordo com o nome passado por parâmetro
- * @param {string} course_name string com nome do curso de acordo com o site da PUC
+ * @param {string} courseName string com nome do curso de acordo com o site da PUC
  * @returns Objeto de curso:
  * 
  * "name" é a string que representa o nome, por conveniência
@@ -14,19 +14,19 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "https://www
  * 
  * "complementary_activities_amount" é um int que representa a quantidade de créditos de horas complementares
 */
-export async function getCourse(course_name) {
-  let docSnapshot = await getDoc(doc(database, "courses", course_name));
+export async function getCourse(courseName) {
+  let docSnapshot = await getDoc(doc(database, "courses", courseName));
   if (!docSnapshot.exists()) return null;
 
   let course = docSnapshot.data();
 
   let curriculum = course["curriculum"];
-  if (course_name === "Design" || course_name === "Estudos de Mídia") {
-    await fixEquivalentGroups(curriculum, course_name);
+  if (courseName === "Design" || courseName === "Estudos de Mídia") {
+    await fixEquivalentGroups(curriculum, courseName);
   }
 
   return {
-    name: course_name,
+    name: courseName,
     curriculum: curriculum,
     free_electives_amount: course["free_electives_amount"],
     complementary_activities_amount: course["complementary_activities_amount"],
@@ -155,7 +155,7 @@ export async function getSubject(code) {
 export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName) {
   let prerequisitesInCourse = {};
   let prerequisites = (await getSubject(subjectCode)).prerequisites;
-  let curriculum = (await Course(courseName)).curriculum;
+  let courseSubjects = await getAllSubjectsFromCourse(courseName);
 
   if (Object.values(prerequisites).length == 0) return {};
 
@@ -165,27 +165,11 @@ export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName)
 
     // Verificação se todas as matérias do pré-requisito fazem parte do curso
     for (const subjectCode of prerequisite) {
-      let subjectInCurriculum = false;
-
       if (subjectCode.includes("_")) shouldIncludePrerequisite = false;
 
-      for (const period of Object.values(curriculum)) {
-        if (period.includes(subjectCode)) {
-          subjectInCurriculum = true;
+      let subjectInCurriculum = false;
+      if (courseSubjects.includes(subjectCode))  subjectInCurriculum = true;
 
-        } else {
-          // Matérias de grupos de optativas
-          for (const periodSubjectCode of period) {
-            let group = await getOptativeSubjectsGroup(periodSubjectCode);
-            if (!group) continue;
-
-            if (group.subjects.includes(subjectCode)) {
-              subjectInCurriculum = true;
-              break;
-            }
-          }
-        }
-      }
       if (!subjectInCurriculum) shouldIncludePrerequisite = false;
     }
 
@@ -211,28 +195,17 @@ export async function getSubjectPrerequisitesFromCourse(subjectCode, courseName)
 export async function getSubjectUnlocksFromCourse(subjectCode, courseName) {
   let unlocks = [];
   let subject = await getSubject(subjectCode);
-  let course = await getCourse(courseName);
+
+  let docSnapshot = await getDoc(doc(database, "courses", courseName));
+  let courseData = docSnapshot.data();
+  let courseSubjects = courseData["all_subjects"];
 
   for (const subjectCode of subject.unlocks) {
-    for (const period of Object.values(course.curriculum)) {
-      for (const courseSubjectCode of period) {
-        if (!await isCodeFromOptativeSubjectsGroup(courseSubjectCode)) {
-          if (subjectCode === courseSubjectCode) {
-            unlocks.push(subjectCode);
-          }
-
-        } else { // Verificar matérias de grupos de optativas
-          let group = await getOptativeSubjectsGroup(courseSubjectCode);
-
-          for (const optativeSubjectCode of group.subjects) {
-            if (subjectCode === optativeSubjectCode) {
-              unlocks.push(subjectCode);
-              break;
-            }
-          }
-        }
+    courseSubjects.forEach(courseSubjectCode => {
+      if (subjectCode === courseSubjectCode) {
+        unlocks.push(subjectCode);
       }
-    }
+    });
   }
 
   return unlocks;
@@ -272,6 +245,12 @@ export async function isCodeFromOptativeSubjectsGroup(code) {
   return docSnapshot.exists();
 }
 
+async function getAllSubjectsFromCourse(courseName) {
+  let docSnapshot = await getDoc(doc(database, "courses", courseName));
+  let courseData = docSnapshot.data();
+  return courseData["all_subjects"];
+}
+
 async function registerSubjects(subjects) {
   let i = 0;
   for (const subject of subjects) {
@@ -284,10 +263,10 @@ async function registerSubjects(subjects) {
   }
 }
 
-async function registerOptativeGroup(group_data) {
+async function registerOptativeGroup(groupData) {
   await setDoc(
-    doc(database, "optative_subjects_groups", group_data["code"]),
-    group_data,
+    doc(database, "optative_subjects_groups", groupData["code"]),
+    groupData,
   );
 }
 
