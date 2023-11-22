@@ -1,0 +1,130 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+div.fixed1 {
+  position: fixed;
+  bottom: 4px;
+  right: 4px;
+  width: 210px;
+  border: 5px solid #000000;
+  background-color: #F56329;
+  border-radius: 9px;
+  padding: 4px; /* Adiciona espaço interno para o texto não ficar muito próximo das bordas */
+}
+
+.left-text {
+  text-align: left; /* Alinha o texto à esquerda */
+  flex-grow: 1; /* Ocupa o espaço disponível à esquerda */
+}
+
+.right-text {
+  text-align: right; /* Alinha o texto à direita */
+  flex-grow: 1; /* Ocupa o espaço disponível à direita */
+}
+
+div.fixed2 {
+  position: fixed;
+  width: 190px;
+  display: flex;
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: center; /* Centraliza verticalmente */
+  border: 2px solid #000000;
+  border-radius: 6px;
+  background-color: #F56329;
+  left: 50%; /* Move o elemento para o centro horizontal */
+  transform: translateX(-50%); /* Corrige a posição */
+  bottom: 4px; /* Define a parte inferior da tela */
+}
+
+
+.p1 {
+  font-family: Verdana, sans-serif;
+  font-size: 13px;
+}
+
+body {
+  background: #ffffff; /* background da tela inteira*/
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.line2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.line button {
+  margin-right: 10px; /* Adiciona um espaço entre o botão e o texto */
+}
+
+.line2 button {
+  margin-right: 10px; /* Adiciona um espaço entre o botão e o texto */
+}
+
+.text {
+  flex-grow: 1; /* Ocupa o espaço disponível no centro */
+}
+
+/* TOOLTIPS */
+/* START */
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 240px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  left: auto;
+  right: 100%;
+  top: -5px;
+}
+
+.tooltip .tooltiptext2 {
+  visibility: hidden;
+  width: 400px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  left: auto;
+  right: 100%;
+  top: -25px;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip:hover .tooltiptext2 {
+  visibility: visible;
+}
+
+/* END */
+/* TOOLTIPS */
