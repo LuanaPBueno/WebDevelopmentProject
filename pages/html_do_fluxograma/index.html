@@ -7,7 +7,61 @@
   </title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap">
   <link href="styles.css" rel="stylesheet"/>
+  <link href="stylePOPUP.css" rel="stylesheet" type="text/css" /> <!-- .css do popup -->
 </head>
+
+<!-- Conteudo pop-up -->
+  <!-- INICIO -->
+<dialog id="popup-dialog">
+  <div class="wrapper">
+    <div class = "buttonClose">
+      <button> Fechar </button>
+    </div>
+    <div class="title">
+     <h1></h1> <!-- espaço onde é gerado o nome da matéria -->
+    </div>
+
+    <div class="lista-item">
+      <input class="trigger-input" id="faq-titulo-1" type="checkbox">
+      <div class="trigger-wrapper">
+        <label for="faq-titulo-1">
+          <h2 class="faq-titulo">Bibliografia</h2> <!-- titulo da primeira caixa -->
+        </label>
+        <p class="faq-conteudo">REMOVER ESSA SEÇÃO</p>  <!-- Conteudo da primeira caixa -->
+      </div>
+    </div>
+
+    <div class="lista-item">
+      <input class="trigger-input" id="faq-titulo-2" type="checkbox">
+      <div class="trigger-wrapper">
+        <label for="faq-titulo-2">
+          <h2 class="faq-titulo">Ementa</h2> <!-- titulo da segunda caixa -->
+        </label>
+        <p class="faq-conteudo">REMOVER ESSA SEÇÃO</p> <!-- Conteudo da segunda caixa -->
+      </div>
+    </div>
+
+    <div class="lista-item">
+      <input class="trigger-input" id="faq-titulo-3" type="checkbox">
+      <div class="trigger-wrapper">
+        <label for="faq-titulo-3">
+          <h2 class="faq-titulo">Pré-requisito(s)</h2> <!-- titulo da terceira caixa -->
+        </label>
+        <p class="faq-conteudo">sdsdsdsdsds</p> <!-- Conteudo da terceira caixa -->
+      </div>
+    </div>
+
+    <div class="minirectangle">
+      <div class=minitext>
+         4 CRÉDITOS
+      </div>
+
+  </div>
+</dialog>
+  <!-- FIM -->
+  <!-- Conteudo pop-up -->
+  
+  
 <body>
   <select name="course-options" id="course-options"></select>
   <div id="container">
