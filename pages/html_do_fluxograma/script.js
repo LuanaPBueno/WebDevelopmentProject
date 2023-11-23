@@ -199,5 +199,24 @@ async function loadPage() {
         });
       }
     });
+    subject.addEventListener('click', function() { // função que ativa o openPopup ao clicar numa matéria
+      openPopup(subject.textContent);
+    });
   });
+}
+
+const modal = document.querySelector("dialog") // cria variavel modal que consiste de todo o dialog do popup no html
+const buttonClose = document.querySelector("dialog  button") // cria variavel buttonClose que é o botão de fechar o popup
+buttonClose.addEventListener("click", function(){ // função que fecha o popup quando clica no botão de fechar o popup
+  modal.close(); 
+});
+
+function openPopup(subjectName) { // função que abre o popup
+
+  const modal = document.getElementById("popup-dialog");
+
+  const titleElement = modal.querySelector(".title h1"); // associa uma variavel com o titulo do popup
+  titleElement.textContent = subjectName; // define a variavel do titulo com o nome da matéria
+
+  modal.showModal();
 }
