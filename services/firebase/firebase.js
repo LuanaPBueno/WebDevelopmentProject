@@ -111,6 +111,8 @@ export async function getCourseNames() {
  * 
  * "name" é uma string com nome da matéria
  * 
+ * "credits_amount" é um int com a quantidade de créditos da matéria
+ * 
  * "prerequisites" é um dicionário que funciona como uma lista de possibilidades de pré-requisitos,
  * cada possibilidade é uma lista de strings contendo o código de matérias que são pré-requisitos dessa matéria.
  * Pré-requisitos que não sejam o código de uma matéria tem um '_' na frente.
@@ -131,6 +133,7 @@ export async function getSubject(code) {
   return {
     code: code,
     name: subject["name"],
+    credits_amount: subject["credits_amount"],
     prerequisites: subject["prerequisites"],
     corequisites: subject["corequisites"],
     unlocks: subject["unlocks"],
