@@ -49,6 +49,15 @@
   border-radius: 5px;
 }
 
+.optative-subject-group {
+  font-family: 'Kanit', sans-serif;
+  background-color: white;
+  padding: 5px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
 #period-1 {
   background-color: lightblue;
 }

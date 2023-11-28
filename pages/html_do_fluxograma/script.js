@@ -3,10 +3,11 @@ import { getCourseNames, getCourse, getOptativeSubjectsGroup, getSubject, getSub
 document.addEventListener('DOMContentLoaded', async () => {
   let courseNames = await getCourseNames();
   await loadCourseOptionsDropDownButton(courseNames);
-  await loadPage();
+  await loadPeriodColumns();
+  createPopup();
 });
 
-document.getElementById("course-options").addEventListener("change", loadPage);
+document.getElementById("course-options").addEventListener("change", loadPeriodColumns);
 
 async function loadCourseOptionsDropDownButton(courseNames) {
   let dropdownButton = document.getElementById("course-options");
@@ -20,21 +21,18 @@ async function loadCourseOptionsDropDownButton(courseNames) {
   });
 }
 
-async function loadPage() {
+async function loadPeriodColumns() {
   let courseName = document.getElementById("course-options").value;
   let course = await getCourse(courseName);
 
-  let highlightMostPrerequisites = false;
-  let highlightMostUnlocking = false;
-
-  const subjectIds = {};
-  const prereqCounts = {};
-  const unlockCounts = {};
+  // const subjectIds = {};
+  // const prereqCounts = {};
+  // const unlockCounts = {};
 
   document.getElementById('course-title').textContent = courseName;
 
   const periodsContainer = document.querySelector('.periods');
-  periodsContainer.replaceChildren();
+  periodsContainer.replaceChildren(createLoadingDiv());
   let containerChildren = [];
 
   let subjectGlobalId = 1;
@@ -52,23 +50,21 @@ async function loadPage() {
     for (const code of period) {
       let subject = await getSubject(code);
       if (subject) {
-        const subjectEl = document.createElement('div');
-        subjectEl.className = 'subject';
-        subjectEl.setAttribute('data-id', subjectGlobalId);
-        subjectIds[subject.name] = subjectGlobalId;
-        subjectEl.textContent = subject.name;
+        let subjectEl = createSubjectEl(subject);
+        // subjectEl.setAttribute('data-id', subjectGlobalId);
+        // subjectIds[subject.name] = subjectGlobalId;
+
         periodEl.appendChild(subjectEl);
 
       } else {
         let group = await getOptativeSubjectsGroup(code);
         if (!group) continue;
 
-        const subjectEl = document.createElement('div');
-        subjectEl.className = 'subject';
-        subjectEl.setAttribute('data-id', subjectGlobalId);
-        subjectIds[group.name] = subjectGlobalId;
-        subjectEl.textContent = group.name;
-        periodEl.appendChild(subjectEl);
+        let groupEl = createOptativeSubjectsGroupEl(group);
+        // groupEl.setAttribute('data-id', subjectGlobalId);
+        // subjectIds[group.name] = subjectGlobalId;
+
+        periodEl.appendChild(groupEl);
       }
 
       subjectGlobalId++;
@@ -79,33 +75,57 @@ async function loadPage() {
   }
 
   periodsContainer.replaceChildren(...containerChildren);
+}
 
-  for (const period of Object.values(course.curriculum)) {
-    for (const subjectCode of period) {
-      let subject = await getSubject(subjectCode);
-      if (!subject) continue;
+function createLoadingDiv() {
+  let loading = document.createElement('p');
+  loading.textContent = "Carregando...";
+  return loading;
+}
 
-      console.log(subject.name);
+function createSubjectEl(subject) {
+  const subjectEl = document.createElement('div');
+  subjectEl.textContent = subject.name;
+  subjectEl.className = 'subject';
 
-      let prerequisites = await getSubjectPrerequisitesFromCourse(subject.code, courseName);
-      if (Object.keys(prerequisites).length == 0) continue;
-      prerequisites = prerequisites[0];
-      if (prerequisites === "A matéria contém pré-requisitos, mas nenhum deles faz parte do curso.") continue;
+  subjectEl.addEventListener('click', function() {
+    openPopup(subjectEl.textContent);
+  });
 
-      console.log(prerequisites);
+  return subjectEl;
+}
 
-      const subjectEl = document.querySelector(`[data-id="${subjectIds[subject.name]}"]`);
-      const prereqIds = prerequisites.map(name => subjectIds[name]).join(',');
-      subjectEl.setAttribute('data-prereq', prereqIds);
+function createOptativeSubjectsGroupEl(group) {
+  const groupEl = document.createElement('div');
+  groupEl.textContent = group.name;
+  groupEl.className = 'optative-subject-group';
 
-      prereqCounts[subject.name] = prerequisites.length;
+  groupEl.addEventListener('click', function() {
+    openPopup(subject.textContent);
+  });
 
-      prerequisites.forEach((prereq) => {
-        unlockCounts[prereq] = (unlockCounts[prereq] || 0) + 1;
-      });
-    }
-  }
+  return groupEl;
+}
 
+function createPopup() {
+  const dialog = document.querySelector("dialog");
+  const closePopupButton = document.querySelector("dialog  button");
+  closePopupButton.addEventListener("click", function() {
+    dialog.close(); 
+  });
+}
+
+function openPopup(subjectName) {
+  const dialog = document.getElementById("popup-dialog");
+
+  const titleElement = dialog.querySelector(".title h1");
+  titleElement.textContent = subjectName;
+
+  dialog.showModal();
+}
+
+// TODO atualizar com desaparecimento das matérias
+async function loadHighlightButtons() {
   function toggleHighlightMostPrerequisites() {
     highlightMostPrerequisites = !highlightMostPrerequisites;
 
@@ -166,6 +186,35 @@ async function loadPage() {
     }
   }
 
+  let highlightMostPrerequisites = false;
+  let highlightMostUnlocking = false;
+
+  for (const period of Object.values(course.curriculum)) {
+    for (const subjectCode of period) {
+      let subject = await getSubject(subjectCode);
+      if (!subject) continue;
+
+      // console.log(subject.name);
+
+      let prerequisites = await getSubjectPrerequisitesFromCourse(subject.code, courseName);
+      if (Object.keys(prerequisites).length == 0) continue;
+      prerequisites = prerequisites[0];
+      if (prerequisites === "A matéria contém pré-requisitos, mas nenhum deles faz parte do curso.") continue;
+
+      // console.log(prerequisites);
+
+      const subjectEl = document.querySelector(`[data-id="${subjectIds[subject.name]}"]`);
+      const prereqIds = prerequisites.map(name => subjectIds[name]).join(',');
+      subjectEl.setAttribute('data-prereq', prereqIds);
+
+      prereqCounts[subject.name] = prerequisites.length;
+
+      prerequisites.forEach((prereq) => {
+        unlockCounts[prereq] = (unlockCounts[prereq] || 0) + 1;
+      });
+    }
+  }
+
   const toggleButton = document.createElement('button');
   toggleButton.className = 'button-56';
   toggleButton.textContent = 'Alternar destaque da disciplina com mais pré-requisitos';
@@ -199,24 +248,5 @@ async function loadPage() {
         });
       }
     });
-    subject.addEventListener('click', function() { // função que ativa o openPopup ao clicar numa matéria
-      openPopup(subject.textContent);
-    });
   });
-}
-
-const modal = document.querySelector("dialog") // cria variavel modal que consiste de todo o dialog do popup no html
-const buttonClose = document.querySelector("dialog  button") // cria variavel buttonClose que é o botão de fechar o popup
-buttonClose.addEventListener("click", function(){ // função que fecha o popup quando clica no botão de fechar o popup
-  modal.close(); 
-});
-
-function openPopup(subjectName) { // função que abre o popup
-
-  const modal = document.getElementById("popup-dialog");
-
-  const titleElement = modal.querySelector(".title h1"); // associa uma variavel com o titulo do popup
-  titleElement.textContent = subjectName; // define a variavel do titulo com o nome da matéria
-
-  modal.showModal();
 }
