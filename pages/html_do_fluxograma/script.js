@@ -175,5 +175,29 @@ function openPopup(subject) {
   const titleElement = dialog.querySelector(".title h1");
   titleElement.textContent = subject.name;
 
+  const creditsElement = dialog.querySelector(".minitext");
+  creditsElement.textContent = subject.credits_amount + " Créditos";
+
+  const textElement = dialog.querySelectorAll("p.faq-conteudo");
+
+  let prereqText = "";
+  for (let key of Object.keys(subject.prerequisites)) {
+    prereqText += "<p>" + subject.prerequisites[key] + "</p>";
+  }
+  textElement[2].innerHTML = prereqText;
+
+  let coreqText = "";
+  for (let key of Object.keys(subject.corequisites)) {
+    coreqText += subject.corequisites[key] + ',';
+  }
+  textElement[1].textContent = coreqText;
+
+  console.log(subject.unlocks);
+  let unlocksText = "";
+  for (let key of Object.keys(subject.unlocks)) {
+    unlocksText += "<p>" + subject.unlocks[key] + "</p>";
+  }
+  textElement[0].innerHTML = unlocksText;
+
   dialog.showModal();
 }
