@@ -1,4 +1,11 @@
-import { getCourseNames, getCourse, getOptativeSubjectsGroup, getSubject, getSubjectPrerequisitesFromCourse, getSubjectUnlocksFromCourse } from "../../services/firebase/firebase.js";
+import {
+  getCourseNames,
+  getCourse,
+  getOptativeSubjectsGroup,
+  getSubject,
+  getSubjectPrerequisitesFromCourse,
+  getSubjectUnlocksFromCourse,
+} from "../../services/firebase/firebase.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
   let courseNames = await getCourseNames();
@@ -25,15 +32,13 @@ async function loadPeriodColumns() {
   let courseName = document.getElementById("course-options").value;
   let course = await getCourse(courseName);
 
-  document.getElementById('course-title').textContent = courseName;
-
   const periodsContainer = document.querySelector('.periods');
   periodsContainer.replaceChildren(createLoadingDiv());
   let containerChildren = [];
 
-  let subjectGlobalId = 1;
-  let periodNumber = 1;
+  const loadingDiv = document.getElementById("loading");
 
+  let periodNumber = 1;
   for (const period of Object.values(course.curriculum)) {
     const periodEl = document.createElement('div');
     periodEl.className = 'period';
@@ -56,19 +61,22 @@ async function loadPeriodColumns() {
         let groupEl = createOptativeSubjectsGroupEl(group);
         periodEl.appendChild(groupEl);
       }
-
-      subjectGlobalId++;
     }
+
+    let percentageLoaded = (periodNumber / Object.values(course.curriculum).length * 100).toFixed(0);
+    loadingDiv.textContent = "Carregando dados do curso " + courseName + "... " + percentageLoaded + " % concluído.";
 
     containerChildren.push(periodEl);
     periodNumber++;
   }
 
+  document.getElementById('course-title').textContent = courseName;
   periodsContainer.replaceChildren(...containerChildren);
 }
 
 function createLoadingDiv() {
   let loading = document.createElement('p');
+  loading.id = "loading";
   loading.textContent = "Carregando...";
   return loading;
 }
@@ -79,14 +87,27 @@ function createSubjectEl(subject) {
   subjectEl.textContent = subject.name;
   subjectEl.className = 'subject';
 
-  subjectEl.addEventListener('click', function() {
-    openPopup(subjectEl.value);
+  subjectEl.addEventListener('click', async function () {
+    await changeSubjectsOpacity(subjectEl.value);
+
+    let resetButton = subjectEl.children.namedItem("resetButton");
+    resetButton.style.opacity = 1;
   });
 
   subjectEl.addEventListener('mouseover', function () {
-    changeSubjectsOpacity(subjectEl.value);
+    let infoButton = subjectEl.children.namedItem("infoButton");
+    infoButton.style.opacity = 1;
   });
-  subjectEl.addEventListener('mouseout', resetSubjectsVisibility);
+  subjectEl.addEventListener('mouseout', function () {
+    let infoButton = subjectEl.children.namedItem("infoButton");
+    infoButton.style.opacity = 0;
+  });
+
+  subjectEl.appendChild(document.createTextNode(' '));
+  subjectEl.appendChild(createInfoButton(subject));
+
+  subjectEl.appendChild(document.createTextNode(' '));
+  subjectEl.appendChild(createResetVisibilityButton());
 
   return subjectEl;
 }
@@ -97,11 +118,46 @@ function createOptativeSubjectsGroupEl(group) {
   groupEl.textContent = group.name;
   groupEl.className = 'optative-subject-group';
 
-  groupEl.addEventListener('click', function() {
-    openPopup(groupEl.value);
+  groupEl.addEventListener('mouseover', function () {
+    let infoButton = subjectEl.children.namedItem("infoButton");
+    infoButton.style.opacity = 1;
+  });
+  groupEl.addEventListener('mouseout', function () {
+    let infoButton = subjectEl.children.namedItem("infoButton");
+    infoButton.style.opacity = 0;
   });
 
+  groupEl.appendChild(document.createTextNode(' '));
+  groupEl.appendChild(createInfoButton(group));
+
   return groupEl;
+}
+
+function createInfoButton(subject) {
+  const button = document.createElement('button');
+  button.textContent = 'i';
+  button.style.opacity = 0;
+  button.name = "infoButton";
+
+  button.addEventListener('click', function() {
+    openPopup(subject);
+  });
+
+  return button;
+}
+
+function createResetVisibilityButton() {
+  const button = document.createElement('button');
+  button.textContent = 'X';
+  button.style.opacity = 0;
+  button.name = "resetButton";
+
+  button.addEventListener('click', function () {
+    resetSubjectsVisibility();
+    button.style.opacity = 0;
+  });
+
+  return button;
 }
 
 function resetSubjectsVisibility() {
@@ -128,7 +184,7 @@ async function changeSubjectsOpacity(subject) {
   for (const periodEl of Array.from(periodsContainer.children)) {
     for (const subjectEl of Array.from(periodEl.children)) {
       if (subjectEl.className != 'subject' && subjectEl.className != 'optative-subject-group') continue;
-      if (subjectEl.textContent == subject.name || prerequisites.includes(subjectEl.value.code) || unlocks.includes(subjectEl.value.code)) continue;
+      if (subjectEl.value.code == subject.code || prerequisites.includes(subjectEl.value.code) || unlocks.includes(subjectEl.value.code)) continue;
 
       subjectEl.style.opacity = 0.5;
     }
