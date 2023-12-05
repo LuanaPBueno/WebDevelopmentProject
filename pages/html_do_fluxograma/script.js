@@ -89,7 +89,8 @@ function createSubjectEl(subject) {
 
   subjectEl.addEventListener('click', async function () {
     await changeSubjectsOpacity(subjectEl.value);
-
+    
+    disableResetButtons();
     let resetButton = subjectEl.children.namedItem("resetButton");
     resetButton.style.opacity = 1;
   });
@@ -119,11 +120,11 @@ function createOptativeSubjectsGroupEl(group) {
   groupEl.className = 'optative-subject-group';
 
   groupEl.addEventListener('mouseover', function () {
-    let infoButton = subjectEl.children.namedItem("infoButton");
+    let infoButton = groupEl.children.namedItem("infoButton");
     infoButton.style.opacity = 1;
   });
   groupEl.addEventListener('mouseout', function () {
-    let infoButton = subjectEl.children.namedItem("infoButton");
+    let infoButton = groupEl.children.namedItem("infoButton");
     infoButton.style.opacity = 0;
   });
 
@@ -140,6 +141,9 @@ function createInfoButton(subject) {
   button.name = "infoButton";
 
   button.addEventListener('click', function() {
+    if (button.style.opacity < 1) return;
+
+    event.stopPropagation();
     openPopup(subject);
   });
 
@@ -153,11 +157,22 @@ function createResetVisibilityButton() {
   button.name = "resetButton";
 
   button.addEventListener('click', function () {
-    resetSubjectsVisibility();
+    if (button.style.opacity < 1) return;
+
+    event.stopPropagation();
     button.style.opacity = 0;
+    resetSubjectsVisibility();
   });
 
   return button;
+}
+
+function disableResetButtons() {
+  let buttons = document.getElementsByName("resetButton");
+
+  for (const button of buttons) {
+    button.style.opacity = 0;
+  }
 }
 
 function resetSubjectsVisibility() {
