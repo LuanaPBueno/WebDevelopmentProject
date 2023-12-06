@@ -49,6 +49,10 @@
   border-radius: 5px;
 }
 
+.subject:hover {
+  transform:scale(1.2); 
+}
+
 .optative-subject-group {
   font-family: 'Kanit', sans-serif;
   background-color: white;
@@ -56,6 +60,10 @@
   margin: 5px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.optative-subject-group:hover {
+  transform:scale(1.2); 
 }
 
 #period-1 {
