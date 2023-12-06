@@ -2,42 +2,37 @@ import { getOptativeSubjectsGroup, getSubject } from "../../services/firebase/fi
 
 document.addEventListener("DOMContentLoaded", async function () {
   const form = document.getElementById('searchForm');
-  
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const inputCode = document.getElementById('searchInput').value.toUpperCase();
-    const subjectsDiv = document.getElementById('subjectsList');
-    subjectsDiv.innerHTML = ''; // Limpar resultados anteriores
+  const subjectsDiv = document.getElementById('subjectsList');
+  const backButton = document.createElement("button"); 
+  const titleElement = document.getElementById('title'); 
+  backButton.textContent = "Voltar";
+  backButton.onclick = () => {
+    subjectsDiv.innerHTML = ''; 
+    displaySubjects();
+  };
+
+  async function displaySubjects() {
+    const inputCode = document.getElementById('searchInput').value.toUpperCase(); 
+    subjectsDiv.innerHTML = ''; 
     
     try {
       const subjectsGroup = await getOptativeSubjectsGroup(inputCode);
-      
+      titleElement.textContent = subjectsGroup.name;
       if (subjectsGroup && subjectsGroup.subjects) {
         for (const key in subjectsGroup.subjects) {
           const subjectName = subjectsGroup.subjects[key];
-
-          try {
-            const getSub = await getSubject(subjectName);
-
-            if (getSub && getSub.name && getSub.code) {
-
-              const subjectsNameString = getSub.name;
-
-              const subjectA = document.createElement("a");
-              subjectA.textContent = subjectsNameString;
-              subjectA.href = "https://www.puc-rio.br/ferramentas/ementas/ementa.aspx?cd=" + getSub.code;
-              subjectA.className = "subjectoption";
-              subjectsDiv.appendChild(subjectA);
-              subjectsDiv.appendChild(document.createElement("br"));
-
-            } else {
-              subjectsDiv.textContent = 'Nenhuma matéria encontrada para o código: ' + subjectName;
-            }
-
-          } catch (error) {
-            console.error('Erro ao buscar dados:', error);
-            subjectsDiv.textContent = 'Erro ao buscar matéria. Tente novamente mais tarde.';
-          }  
+          const getSub = await getSubject(subjectName);
+          if (getSub && getSub.name && getSub.code) {
+            const subjectA = document.createElement("a");
+            subjectA.textContent = "* " + getSub.name;
+            subjectA.href = "#"; 
+            subjectA.className = "subjectoption";
+            subjectA.onclick = () => showSubjectDetails(getSub.code); 
+            subjectsDiv.appendChild(subjectA);
+            subjectsDiv.appendChild(document.createElement("br"));
+          } else {
+            subjectsDiv.textContent = 'Nenhuma matéria encontrada para o código: ' + subjectName;
+          }
         }
       } else {
         subjectsDiv.textContent = 'Nenhuma matéria encontrada para o código: ' + inputCode;
@@ -46,5 +41,19 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.error('Erro ao buscar dados:', error);
       subjectsDiv.textContent = 'Erro ao buscar matérias. Tente novamente mais tarde.';
     }
+  }
+
+  function showSubjectDetails(code) {
+    subjectsDiv.innerHTML = ''; 
+    const codeDiv = document.createElement("div"); 
+    codeDiv.textContent = code;
+    subjectsDiv.appendChild(codeDiv);
+    subjectsDiv.appendChild(backButton); 
+  }
+
+  form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    displaySubjects();
   });
+  
 });
